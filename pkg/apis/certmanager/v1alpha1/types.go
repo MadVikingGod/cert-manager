@@ -18,6 +18,7 @@ package v1alpha1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"time"
 )
 
 const (
@@ -84,6 +85,11 @@ type IssuerConfig struct {
 	ACME  *ACMEIssuer  `json:"acme,omitempty"`
 	CA    *CAIssuer    `json:"ca,omitempty"`
 	Vault *VaultIssuer `json:"vault,omitempty""`
+
+	// Certificate default Duration
+	Duration time.Duration `json:"duration,omitempty"`
+	// Certificate renew before expiration duration
+	RenewBefore time.Duration `json:"renewBefore,omitempty"`
 }
 
 type VaultIssuer struct {

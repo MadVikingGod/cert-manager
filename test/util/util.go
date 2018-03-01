@@ -338,13 +338,15 @@ func NewIngress(name, secretName string, annotations map[string]string, dnsNames
 	}
 }
 
-func NewCertManagerACMEIssuer(name, acmeURL, acmeEmail, acmePrivateKey string) *v1alpha1.Issuer {
+func NewCertManagerACMEIssuer(name, acmeURL, acmeEmail, acmePrivateKey string, duration, renewBefore time.Duration) *v1alpha1.Issuer {
 	return &v1alpha1.Issuer{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
 		},
 		Spec: v1alpha1.IssuerSpec{
 			IssuerConfig: v1alpha1.IssuerConfig{
+				Duration:    duration,
+				RenewBefore: renewBefore,
 				ACME: &v1alpha1.ACMEIssuer{
 					Email:         acmeEmail,
 					Server:        acmeURL,
@@ -361,13 +363,15 @@ func NewCertManagerACMEIssuer(name, acmeURL, acmeEmail, acmePrivateKey string) *
 	}
 }
 
-func NewCertManagerCAIssuer(name, secretName string) *v1alpha1.Issuer {
+func NewCertManagerCAIssuer(name, secretName string, duration, renewBefore time.Duration) *v1alpha1.Issuer {
 	return &v1alpha1.Issuer{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
 		},
 		Spec: v1alpha1.IssuerSpec{
 			IssuerConfig: v1alpha1.IssuerConfig{
+				Duration:    duration,
+				RenewBefore: renewBefore,
 				CA: &v1alpha1.CAIssuer{
 					SecretName: secretName,
 				},

@@ -12,6 +12,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha1"
+	"github.com/jetstack/cert-manager/pkg/issuer"
 	"github.com/jetstack/cert-manager/pkg/issuer/acme/client"
 	"github.com/jetstack/cert-manager/pkg/util/errors"
 	"github.com/jetstack/cert-manager/pkg/util/pki"
@@ -21,6 +22,7 @@ import (
 const (
 	errorAccountRegistrationFailed = "ErrRegisterACMEAccount"
 	errorAccountVerificationFailed = "ErrVerifyACMEAccount"
+	errorDurationInvalid           = "ErrACMEDurationInvalid"
 
 	successAccountRegistered = "ACMEAccountRegistered"
 	successAccountVerified   = "ACMEAccountVerified"
@@ -29,11 +31,19 @@ const (
 	messageAccountVerificationFailed = "Failed to verify ACME account: "
 	messageAccountRegistered         = "The ACME account was registered with the ACME server"
 	messageAccountVerified           = "The ACME account was verified with the ACME server"
+	messageDurationInvalid           = "ACME "
 )
 
 // Setup will verify an existing ACME registration, or create one if not
 // already registered.
 func (a *Acme) Setup(ctx context.Context) error {
+	err := issuer.ValidateDuration(a.issuer)
+	if err != nil {
+		s := messageDurationInvalid + err.Error()
+		a.issuer.UpdateStatusCondition(v1alpha1.IssuerConditionReady, v1alpha1.ConditionFalse, errorDurationInvalid, s)
+		return fmt.Errorf(s)
+	}
+
 	cl, err := a.acmeClient()
 	if k8sErrors.IsNotFound(err) || errors.IsInvalidData(err) {
 		glog.Infof("%s: generating acme account private key %q", a.issuer.GetObjectMeta().Name, a.issuer.GetSpec().ACME.PrivateKey.Name)
