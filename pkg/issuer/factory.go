@@ -35,6 +35,11 @@ func (f *factory) IssuerFor(issuer v1alpha1.GenericIssuer) (Interface, error) {
 		return nil, fmt.Errorf("could not get issuer type: %s", err.Error())
 	}
 
+	err = ValidateDuration(issuer)
+	if err != nil {
+		return nil, fmt.Errorf("issure duration is invalid: %s", err.Error())
+	}
+
 	constructorsLock.RLock()
 	defer constructorsLock.RUnlock()
 	if constructor, ok := constructors[issuerType]; ok {

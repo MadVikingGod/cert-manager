@@ -46,7 +46,7 @@ const (
 	messageCertificateRenewed = "Certificate renewed successfully"
 
 	messageWarningCertificateDuration = "Certificate duration received from issuer is %s which is lower than the issuer configured duration of %s"
-	messageWarningScheduleModified    = "Certificate renewal requested schedule cannot be honored. Specified renewBefore of %s is greater than certificate total duration of %s"
+	messageWarningScheduleModified    = "Certificate renewBefore, %s, is greater than certificate total duration, %s.  Will use 1/3 of the duration for renewBefore, %s"
 )
 
 // to help testing
@@ -328,11 +328,12 @@ func (c *Controller) calculateTimeBeforeExpiry(cert *x509.Certificate, crt *v1al
 	// If not we notify with an event that we will renew the certificate
 	// before (certificate duration / 3) of its expiration duration.
 	if renew > certDuration {
-		s := fmt.Sprintf(messageWarningScheduleModified, renew, certDuration)
+		renew, origRenew := certDuration/3, renew
+		s := fmt.Sprintf(messageWarningScheduleModified, origRenew, certDuration, renew)
 		glog.Info(s)
 		c.recorder.Event(crt, api.EventTypeWarning, warningScheduleModified, s)
 		// We will renew 1/3 before the expiration date.
-		renew = certDuration / 3
+
 	}
 
 	// calculate the amount of time until expiry

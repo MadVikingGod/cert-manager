@@ -8,7 +8,6 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha1"
-	"github.com/jetstack/cert-manager/pkg/issuer"
 	"github.com/jetstack/cert-manager/pkg/util/kube"
 )
 
@@ -22,20 +21,9 @@ const (
 	messageErrorInvalidKeyPair = "Invalid signing key pair: "
 
 	messageKeyPairVerified = "Signing CA verified"
-
-	messageDurationInvalid = "CA "
-	errorDurationInvalid   = "ErrCADurationInvalid"
 )
 
 func (c *CA) Setup(ctx context.Context) error {
-	err := issuer.ValidateDuration(c.issuer)
-	if err != nil {
-		s := messageDurationInvalid + err.Error()
-		glog.Info(s)
-		c.issuer.UpdateStatusCondition(v1alpha1.IssuerConditionReady, v1alpha1.ConditionFalse, errorDurationInvalid, s)
-		return fmt.Errorf(s)
-	}
-
 	cert, err := kube.SecretTLSCert(c.secretsLister, c.issuerResourcesNamespace, c.issuer.GetSpec().CA.SecretName)
 
 	if err != nil {
